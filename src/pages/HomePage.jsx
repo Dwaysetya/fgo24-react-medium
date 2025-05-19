@@ -1,20 +1,15 @@
-import React from "react";
-import NavMenu from "../components/molecules/NavMenu";
-import HeroArticle from "../components/molecules/HeroArticle";
 import Article from "../components/molecules/Article";
+import Recommend from "../components/molecules/Recommend";
 
 function HomePage() {
   return (
-    <main className="w-full min-h-full">
-      <section className="flex w-full min-h-full  justify-center items-center">
-        <NavMenu />
-      </section>
-      <section className="flex flex-col w-full px-[200px] py-[100px]">
-        <div>
-          <HeroArticle />
-        </div>
-        <div className="flex flex-col divide-x-1 w-[70%]">
+    <main className="w-full min-h-screen">
+      <section className="flex w-full py-[100px] justify-center">
+        <div className="flex flex-col w-[50%] max-w-[800px]">
           <Article />
+        </div>
+        <div className="w-[30%] max-w-[400px] ml-10">
+          <Recommend />
         </div>
       </section>
     </main>

@@ -1,74 +1,164 @@
-import React from "react";
-import { FaRegHandRock } from "react-icons/fa";
-import { FaRegCommentAlt } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import HeroArticle from "./HeroArticle";
+import { FaRegHandRock, FaRegCommentAlt } from "react-icons/fa";
 import { CiBookmarkPlus } from "react-icons/ci";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Article() {
-  const dataArticle = [
-    {
-      userName: "Yasir",
-      slug: "The-Only-7-Signs-of-AI-Writing",
-      judul: "The Only 7 Signs of AI Writing You Need to Remove in Your Text",
-      paragraf: "Never be accused of using AI again.",
-      body: "Note: This was originally published as a guest post to Sorab Gaswalla’s newsletter, All About Content … And AI.AI-generated content is fast. But it often feels robotic. Lifeless. Readers can tell. Editors can tell. Even AI detectors, faulty as they can be, can tell (at least, sometimes). It’s because AI lacks that human spark. The emotions, the experiences — that nameless way that they bleed into our words. They’ll all missing in lazy, completely-AI text. This is what creates that conflict: people read low quality AI content, hate it, and then generalize all “AI text” to be this way.",
-    },
-    {
-      userName: "Nanda",
-      slug: "The-Only-7-Signs-of-AI-Writing",
-      judul: "Say Goodbye To Axios In 2025",
-      paragraf:
-        "Discover the Future of Web Requests: Lightweight, Intelligent, and Seamlessly Integrated",
-      body: "For over a decade, Axios has been the go-to HTTP request library for frontend developers, thanks to its simple API design and support for both browser and Node.js environments. However, as modern frontend frameworks evolve and engineering demands increase, Alova.js emerges as a lighter, smarter, and more modern alternative.",
-    },
-    {
-      userName: "Faisal",
-      slug: "The-Only-7-Signs-of-AI-Writing",
-      judul:
-        "How I Started Writing With No Followers, No Experience, and No Hope",
-      paragraf:
-        "For the writer who doesn’t think they have anything to offer — and why you’re dead wrong",
-      body: "I didn’t have a brand. I didn’t have confidence. I didn’t even have a bed. Just two kids, a floor to sleep on, and a voice too ashamed to use. No followers. No experience. No hope. But I wrote anyway — not because I believed in myself, but because I didn’t know what else to do. If you think you have nothing to offer, I’ve been where you are. But I’m here to tell you",
-    },
-    {
-      userName: "Hosea",
-      slug: "The-Only-7-Signs-of-AI-Writing",
-      judul: "Interview Experience: Senior Frontend Engineer at Quizizz",
-      paragraf:
-        "For the writer who doesn’t think they have anything to offer — and why you’re dead wrong",
-      body: "I recently interviewed for a Senior Frontend Engineer role at Quizizz. The overall process was smooth, with four rounds covering JavaScript fundamentals, problem-solving, low-level design, and behavioral aspects. Although I wasn’t selected, the experience was incredibly insightful, and I learned a lot along the way. Here’s a breakdown of my journey:",
-    },
-  ];
+  const [data, setData] = useState([]);
+  const [count, setCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const limit = 5;
+  const totalPages = Math.ceil(count / limit);
+
+  async function fetchArticles(page = 1, query = "") {
+    try {
+      const offset = (page - 1) * limit;
+      const { data } = await axios.get("/dataArticle.json");
+      console.log("Raw data length:", data.length);
+      const display = data.filter((obj) =>
+        obj.judul.toLowerCase().includes(query.toLowerCase())
+      );
+      console.log("Filtered data length:", display.length);
+      console.log("Current page:", page, "Offset:", offset);
+      setCount(display.length);
+      setData(display.slice(offset, offset + limit));
+      console.log("Displayed data:", display.slice(offset, offset + limit));
+      console.log("Total pages:", Math.ceil(display.length / limit));
+    } catch (error) {
+      console.error("Error fetching articles:", error);
+      setCount(0);
+      setData([]);
+    }
+  }
+
+  useEffect(() => {
+    const query = searchParams.get("search") || "";
+    console.log("Search query:", query);
+    setCurrentPage(1);
+    fetchArticles(1, query);
+  }, [searchParams]);
 
   const handleClick = (item) => {
     navigate(`/article/${item.userName}/${item.slug}`);
   };
 
-  return (
-    <>
-      {dataArticle.map((item) => (
-        <div
-          className="w-full flex flex-col items-center p-5 shadow-xs mt-10 cursor-pointer"
-          key={item.slug}
-          onClick={() => handleClick(item)}
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      console.log("Navigating to page:", page);
+      setCurrentPage(page);
+      const query = searchParams.get("search") || "";
+      fetchArticles(page, query);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const renderPagination = () => {
+    console.log("Rendering pagination, totalPages:", totalPages);
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-4 py-2 mx-1 rounded ${
+            currentPage === i
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          style={{ minWidth: "40px" }}
         >
-          <div className="flex flex-col">
-            <h1 className="font-bold text-4xl">{item.judul}</h1>
-            <p className="font-light ">{item.paragraf}</p>
-          </div>
-          <div className="flex gap-5 w-full p-5 justify-between">
-            <div className="flex gap-5">
-              <FaRegHandRock />
-              <FaRegCommentAlt />
+          {i}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex justify-center mt-10 mb-10">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`px-4 py-2 mx-1 rounded ${
+            currentPage === 1
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          style={{ minWidth: "100px" }}
+        >
+          Sebelumnya
+        </button>
+        {pages}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`px-4 py-2 mx-1 rounded ${
+            currentPage === totalPages
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          style={{ minWidth: "100px" }}
+        >
+          Selanjutnya
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full">
+      {searchParams.get("search") && (
+        <p className="mt-2 text-gray-600 italic">
+          Hasil pencarian untuk: "{searchParams.get("search")}"
+        </p>
+      )}
+      <div className="mt-10">
+        <HeroArticle />
+      </div>
+      {data.length === 0 ? (
+        <p className="text-center text-gray-600 mt-10">
+          Tidak ada artikel yang ditemukan.
+        </p>
+      ) : (
+        data.map((item) => (
+          <div
+            className="w-full flex flex-col items-center p-5 shadow-md mt-10 cursor-pointer"
+            key={item.slug}
+            onClick={() => handleClick(item)}
+          >
+            <div className="flex">
+              <div className="flex flex-col">
+                <h1 className="font-bold text-4xl">{item.judul}</h1>
+                <p className="font-light">{item.paragraf}</p>
+              </div>
+              <div>
+                <img src={item.image} alt="image" />
+              </div>
             </div>
-            <div>
-              <CiBookmarkPlus />
+            <div className="flex gap-5 w-full p-5 justify-between">
+              <div className="flex gap-5">
+                <FaRegHandRock />
+                <FaRegCommentAlt />
+              </div>
+              <div>
+                <CiBookmarkPlus />
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-    </>
+        ))
+      )}
+      {count > 0 ? (
+        totalPages > 1 ? (
+          renderPagination()
+        ) : (
+          <p className="text-center text-gray-600 mt-10">
+            Hanya ada satu halaman data.
+          </p>
+        )
+      ) : null}
+    </div>
   );
 }
 
