@@ -7,6 +7,7 @@ This repository contains information on how to create a simple Medium website th
 ## Result
 
 ![Result](./src/assets/Screenshot%202025-05-19%20at%2013.27.22.png)
+![Result](./src/assets/Screenshot%202025-05-19%20at%2013.33.37.png)
 
 ## How to Run this project
 
